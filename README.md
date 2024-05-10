@@ -24,6 +24,17 @@ Utilization percentage is relative to the whole GPU, not to the single process u
 
 ## Arguments
 
+```text
+usage: nvidialog.py [-h] [--interval INTERVAL] [--log_cmdline] [--output_file OUTPUT_FILE]
+
+options:
+  -h, --help            show this help message and exit
+  --interval INTERVAL   Interval log in seconds
+  --log_cmdline         Enable command-line logging
+  --output_file OUTPUT_FILE
+                        Output file, default is standard output
+```
+
 Command line is logged only if enabled using the `--log_cmdline` argument.
 
 The `--interval` sets the logging interval in seconds.

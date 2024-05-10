@@ -40,7 +40,7 @@ if __name__ == '__main__':
     log_cmdline = args.log_cmdline
     output_file = args.output_file
 
-    to_csv = csv.writer(sys.stdout)
+    to_csv = csv.writer(output_file)
     while True:
         gpus = list(nvsmi.get_gpus())
         gpus = {gpu.id: gpu for gpu in gpus}
