@@ -50,4 +50,5 @@ if __name__ == '__main__':
             to_csv.writerow(
                 [int(now), interval, process.gpu_id, int(gpus[process.gpu_id].gpu_util), int(process.used_memory),
                  process.pid, owner(process.pid), cmdline(process.pid) if log_cmdline else "NOT_LOGGED"])
+        output_file.flush()
         time.sleep(interval)
