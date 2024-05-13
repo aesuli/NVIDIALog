@@ -54,6 +54,7 @@ if __name__ == '__main__':
     df = pd.read_csv(input_file,header=None,names=["time_stamp", "time", "gpu_id", "gpu_util", "used_memory", "pid", "user", "cmdline"])
     start_time = df['time_stamp'].min()
     end_time = df['time_stamp'].max()
+    end_time += df[df['time_stamp']==end_time].time.mean()
     timespan = int(end_time-start_time)
 
     if args.num_gpus > 0:
