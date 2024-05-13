@@ -86,16 +86,17 @@ if __name__ == '__main__':
     print(df.rename(columns={'pid':'num processes'}).groupby('user')['num processes'].nunique().to_markdown())
     print()
 
-    print('## Users, total compute time (use of multiple GPUs sum up)')
-    pt = df.pivot_table('time','user', aggfunc='sum')
+    print('## Users, total compute time')
+    pt = df.drop_duplicates(subset=['time_stamp', 'user', 'gpu_id'], keep='last').pivot_table('time','user', aggfunc='sum')
     pt['% use'] = (pt['time']/(timespan*num_gpus)).apply(lambda x: f'{x:.1%}')
     pt['time'] = pt['time'].apply(human_time)
     print(pt.to_markdown(colalign=('left','right','right')))
     print()
 
-    print('## GPUs, total compute time (use by multiple users sum up)')
-    pt = df.pivot_table('time', 'gpu_id', aggfunc='sum')
-    pt['% use'] = (pt['time']/(timespan*num_gpus)).apply(lambda x: f'{x:.1%}')
+    print('## GPUs, total compute time')
+
+    pt = df.drop_duplicates(subset=['time_stamp', 'gpu_id'], keep='last').pivot_table('time', 'gpu_id', aggfunc='sum')
+    pt['% use'] = (pt['time']/(timespan)).apply(lambda x: f'{x:.1%}')
     pt['time'] = pt['time'].apply(human_time)
     print(pt.to_markdown(colalign=('left','right','right')))
     print()
