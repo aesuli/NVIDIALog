@@ -177,6 +177,8 @@ def main():
                         help='Output file, default is standard output')
     parser.add_argument('--plot_file', type=str, default=None,
                         help='Plot user/GPU map to file. Default is no plot.')
+    parser.add_argument('--user_map', type=str, default=None,
+                        help='Mapping of user names to alternative names. One per line, format: "user,newname". Default is no mapping.')
     args = parser.parse_args()
 
     input_file = args.input_file
@@ -184,6 +186,14 @@ def main():
     df = pd.read_csv(input_file, header=None,
                      names=["epoch", "time", "gpu_id", "gpu_util", "used_memory", "pid", "user", "cmdline"])
     df['datetime'] = pd.to_datetime(df['epoch'], unit='s')
+
+    if args.user_map:
+        user_map = dict()
+        with (open(args.user_map,mode='rt',encoding='utf-8') as input_file):
+            for line in input_file:
+                old_name,new_name = line.strip().split(',')
+                user_map[old_name] = new_name
+        df['user'] = df['user'].map(user_map)
 
     report(df, args.num_gpus, sys.stdout)
 
