@@ -1,3 +1,5 @@
 nvsmi~=0.4.2
 pandas
 tabulate
+matplotlib
+seaborn
