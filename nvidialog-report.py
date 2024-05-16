@@ -121,7 +121,8 @@ def plot(df, plot_file, slots=200):
 
     df['user_id'] = df['user'].map(to_numbers)
 
-    max_concurrent = int(df.pivot_table('user_id', ['gpu_id'], 'datetime', aggfunc='count').max().max())
+    max_concurrent = df.pivot_table('user_id', ['gpu_id'], 'datetime', aggfunc='count').max()
+    max_concurrent = np.lcm.reduce(list(max_concurrent.to_numpy(dtype=int)))
 
     pt = df.pivot_table('user_id', ['gpu_id', 'user'], 'datetime').fillna(users.index(idle_name))
 
