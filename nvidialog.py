@@ -3,6 +3,7 @@ import csv
 import pwd
 import sys
 import time
+import socket
 
 import nvsmi
 
@@ -29,6 +30,13 @@ def cmdline(pid):
 
 
 if __name__ == '__main__':
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.bind('\0NVL_single_process_lock')
+    except socket.error:
+        print('Process already running')
+        exit(0)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--interval', type=int, default=60, help='Interval log in seconds')
     parser.add_argument('--log_cmdline', action='store_true', help='Enable command-line logging')
