@@ -34,7 +34,7 @@ if __name__ == '__main__':
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0NVL_single_process_lock')
     except socket.error:
-        print('Process already running')
+        print('Process already running', file=sys.stderr)
         exit(0)
 
     parser = argparse.ArgumentParser()
