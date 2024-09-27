@@ -56,7 +56,7 @@ def human_time(seconds, resolution='m'):
 def report(df, num_gpus, output_file):
     start_time = df['epoch'].min()
     end_time = df['epoch'].max()
-    end_time += df[df['epoch'] == end_time].time.mean()
+    end_time += df[df['epoch'] == end_time].interval.mean()
     timespan = int(end_time - start_time)
 
     if num_gpus == 0:
@@ -72,9 +72,9 @@ def report(df, num_gpus, output_file):
     print(f'Total available compute time: {human_time(timespan * num_gpus)}', file=output_file)
     print(file=output_file)
     print('## User-GPU time', file=output_file)
-    pt = df.pivot_table('time', ['user', 'gpu_id'], aggfunc='sum')
-    pt['% use'] = (pt['time'] / timespan).apply(lambda x: f'{x:.1%}')
-    pt['time'] = pt['time'].apply(human_time)
+    pt = df.pivot_table('interval', ['user', 'gpu_id'], aggfunc='sum')
+    pt['% use'] = (pt['interval'] / timespan).apply(lambda x: f'{x:.1%}')
+    pt['interval'] = pt['interval'].apply(human_time)
     print(pt.reset_index()
           .rename(columns={'idx1': '', 'idx2': ''}).to_markdown(index=False,
                                                                 colalign=('left', 'left', 'right', 'right')),
@@ -85,39 +85,49 @@ def report(df, num_gpus, output_file):
           file=output_file)
     print(file=output_file)
     print('## Users, total compute time', file=output_file)
-    pt = df.drop_duplicates(subset=['epoch', 'user', 'gpu_id'], keep='last').pivot_table('time', 'user',
+    pt = df.drop_duplicates(subset=['epoch', 'user', 'gpu_id'], keep='last').pivot_table('interval', 'user',
                                                                                          aggfunc='sum')
-    pt['% use'] = (pt['time'] / (timespan * num_gpus)).apply(lambda x: f'{x:.1%}')
-    pt['time'] = pt['time'].apply(human_time)
+    pt['% use'] = (pt['interval'] / (timespan * num_gpus)).apply(lambda x: f'{x:.1%}')
+    pt['interval'] = pt['interval'].apply(human_time)
     print(pt.to_markdown(colalign=('left', 'right', 'right')), file=output_file)
     print(file=output_file)
     print('## GPUs, total compute time', file=output_file)
-    pt = df.drop_duplicates(subset=['epoch', 'gpu_id'], keep='last').pivot_table('time', 'gpu_id', aggfunc='sum')
-    pt['% use'] = (pt['time'] / (timespan)).apply(lambda x: f'{x:.1%}')
-    pt['time'] = pt['time'].apply(human_time)
+    pt = df.drop_duplicates(subset=['epoch', 'gpu_id'], keep='last').pivot_table('interval', 'gpu_id', aggfunc='sum')
+    pt['% use'] = (pt['interval'] / (timespan)).apply(lambda x: f'{x:.1%}')
+    pt['interval'] = pt['interval'].apply(human_time)
     print(pt.to_markdown(colalign=('left', 'right', 'right')), file=output_file)
     print(file=output_file)
 
 
-def plot(df, plot_file, slots=200):
+def plot(df, plot_file, slices):
     import seaborn as sns
     from matplotlib import pyplot as plt
 
     start_time = df['epoch'].min()
     end_time = df['epoch'].max()
-    end_time += df[df['epoch'] == end_time].time.mean()
+    end_time += df[df['epoch'] == end_time].interval.mean()
     timespan = int(end_time - start_time)
 
-    interval = timespan / slots // 60
-
-    df = df.set_index(['datetime', 'gpu_id', 'user'])
-    df = df.groupby([pd.Grouper(level='datetime', freq=f'{interval}min'),
-                     pd.Grouper(level='gpu_id'), pd.Grouper(level='user')]).first().index.to_frame(index=False)
+    interval = timespan // slices
+    module = slices//50
 
     idle_name = '_idle_'
     users = list(df['user'].unique()) + [idle_name]
     to_numbers = {name: id for id, name in enumerate(users)}
     idle_idx = to_numbers[idle_name]
+
+    idles = list()
+    fake_gpu_id = len(df['gpu_id'].unique())
+    for i in range(slices):
+        idles.append({"epoch":start_time+i*interval, "user":idle_name,'gpu_id':fake_gpu_id})
+
+    idle_df = pd.DataFrame(idles,columns=['epoch','user','gpu_id'])
+    idle_df['datetime'] = pd.to_datetime(idle_df['epoch'], unit='s')
+    df = pd.concat([df,idle_df]).reset_index(drop=True)
+
+    df = df.set_index(['datetime', 'gpu_id', 'user'])
+    df = df.groupby([pd.Grouper(level='datetime', freq=f'{interval}s'),
+                     pd.Grouper(level='gpu_id'), pd.Grouper(level='user')]).first().index.to_frame(index=False)
 
     df['user_id'] = df['user'].map(to_numbers)
 
@@ -126,7 +136,7 @@ def plot(df, plot_file, slots=200):
 
     pt = df.pivot_table('user_id', ['gpu_id', 'user'], 'datetime').fillna(users.index(idle_name))
 
-    num_gpus = len(df['gpu_id'].unique())
+    num_gpus = len(df['gpu_id'].unique())-1
     user_map = np.zeros(shape=(max_concurrent * num_gpus, pt.shape[1]))
     for gpu_id in range(num_gpus):
         gpu_pt = pt.loc[gpu_id]
@@ -149,9 +159,12 @@ def plot(df, plot_file, slots=200):
     cmap.append(sns.crayons['White'])
 
     ax = sns.heatmap(user_map, cmap=cmap)
-    xticklabels = [date for i, date in enumerate(pt.rename(date_format, axis='columns')) if i % 4 == 0]
-    ax.set_xticks([i * 4 for i in range(len(xticklabels))])
+    xticklabels = [date for i, date in enumerate(pt.rename(date_format, axis='columns')) if i % module == 0]
+    ax.set_xticks([i * module for i in range(len(xticklabels))])
     ax.set_xticklabels(xticklabels)
+    xticklabels = ax.get_xticklabels()
+    for label in xticklabels:
+        label.set_rotation(90)
 
     yticklabels = [f'GPU{i}' for i in range(num_gpus)]
     ax.set_yticks([i * max_concurrent + max_concurrent / 2 for i in range(num_gpus)])
@@ -178,6 +191,8 @@ def main():
                         help='Output file, default is standard output')
     parser.add_argument('--plot_file', type=str, default=None,
                         help='Plot user/GPU map to file. Default is no plot.')
+    parser.add_argument('--plot_slices', type=int, default=250,
+                        help='Number of time slices in the plot.')
     parser.add_argument('--user_map', type=str, default=None,
                         help='Mapping of user names to alternative names. One per line, format: "user,newname". Default is no mapping.')
     args = parser.parse_args()
@@ -185,21 +200,33 @@ def main():
     input_file = args.input_file
 
     df = pd.read_csv(input_file, header=None,
-                     names=["epoch", "time", "gpu_id", "gpu_util", "used_memory", "pid", "user", "cmdline"])
+                     names=["epoch", "interval", "gpu_id", "gpu_util", "used_memory", "pid", "user", "cmdline"])
     df['datetime'] = pd.to_datetime(df['epoch'], unit='s')
+
+    unknown_user = '<unknown>'
 
     if args.user_map:
         user_map = dict()
         with (open(args.user_map,mode='rt',encoding='utf-8') as input_file):
             for line in input_file:
-                old_name,new_name = line.strip().split(',')
+                line = line.strip()
+                if len(line)==0:
+                    continue
+                old_name,new_name = line.split(',')
                 user_map[old_name] = new_name
-        df['user'] = df['user'].map(user_map)
+            df['user'] = df['user'].map(user_map)
 
-    report(df, args.num_gpus, sys.stdout)
+    for pid in df[df['user'].isna()]['pid']:
+        usernames = df[df['pid']==pid]['user'].value_counts()
+        if len(usernames)>0:
+            df.loc[df['pid']==pid,'user'] = usernames.index[0]
+
+    df['user'] = df['user'].fillna(unknown_user)
+
+    report(df, args.num_gpus, args.output_file)
 
     if args.plot_file:
-        plot(df, args.plot_file)
+        plot(df, args.plot_file, args.plot_slices)
 
 
 if __name__ == '__main__':
