@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--interval', type=int, default=60, help='Interval log in seconds')
     parser.add_argument('--log_cmdline', action='store_true', help='Enable command-line logging')
-    parser.add_argument('--output_file', type=argparse.FileType('wt', encoding='utf-8'), default=sys.stdout,
+    parser.add_argument('--output_file', type=argparse.FileType('at', encoding='utf-8'), default=sys.stdout,
                         help='Output file, default is standard output')
     args = parser.parse_args()
 
