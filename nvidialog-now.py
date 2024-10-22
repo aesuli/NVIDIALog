@@ -9,10 +9,11 @@ if __name__ == '__main__':
     processes = nvsmi.get_gpu_processes()
     data = []
     for process in processes:
-        data.append([process.gpu_id, process.used_memory, process.pid, owner(process.pid), cmdline(process.pid)])
-    df = pd.DataFrame(data, columns=['GPU', 'Memory', 'PID', 'User', 'Command'])
+        data.append([process.gpu_id, int(process.used_memory), process.pid, owner(process.pid), cmdline(process.pid)])
+    df = pd.DataFrame(data, columns=['GPU', 'Mem (MB)', 'PID', 'User', 'Command'])
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', 100)
-    print(df)#.to_string(index=False))
+    df.index = ['']*len(df)
+    print(df)
