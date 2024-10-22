@@ -11,4 +11,8 @@ if __name__ == '__main__':
     for process in processes:
         data.append([process.gpu_id, process.used_memory, process.pid, owner(process.pid), cmdline(process.pid)])
     df = pd.DataFrame(data, columns=['GPU', 'Memory', 'PID', 'User', 'Command'])
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', 100)
     print(df)
