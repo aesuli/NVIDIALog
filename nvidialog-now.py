@@ -15,4 +15,4 @@ if __name__ == '__main__':
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', 100)
-    print(df)
+    print(df.to_string(index=False))
