@@ -10,4 +10,4 @@ if __name__ == '__main__':
     data = [['GPU', 'Memory', 'PID', 'User', 'Command']]
     for process in processes:
         data.append([process.gpu_id, int(process.used_memory), process.pid, owner(process.pid), cmdline(process.pid)])
-    tabulate.tabulate(data)
+    print(tabulate.tabulate(data))
