@@ -4,11 +4,7 @@ Logger of NVIDIA GPU use, based on nvidia-smi and the wrapper package [nvsmi](ht
 
 ## Logging
 
-```commandline
-python nvidialog.py
-```
-
-The script logs every minute the processes using the GPUs on the system.
+`nvidialog.py` logs every minute the processes using the GPUs on the system.
 The format of each row is:
 ```text
 timestamp, interval_duration_in_secs, gpu_id, gpu_utilization_percent, gpu_used_memory, process_pid, process_owner, command_line
@@ -70,6 +66,21 @@ options:
                         line, format: "user,newname". Default is no mapping.
 ```
 
-### License
+## Realtime query
+
+`nvidialog-now.py` prints the currently running processes, with memory occupation, username, and the command line:
+
+```text
+user@host:~$ nv-now
+ GPU  Mem (MB)      PID             User                                                                 Command
+   0     18776  1918054         username  python train_3d.py --dataset_name datamodel --network anet3d --path...
+   0       868  1999026     another.user  /raid/homes/another.user/miniconda3/envs/text/bin/python -m ipython...
+   1     57226   819106         username  python train_3d.py --dataset_name datamodel2 --network bnet3d --pat...
+   2      9106  1642497         username  python train_3d.py --dataset_name datamodel2 --network bnet3d --pat...
+   3     13828  1944849         username  python train_3d.py --dataset_name datamodel --network anet3d --path...
+user@host:~$
+```
+
+## License
 
 See [LICENSE](LICENSE)
