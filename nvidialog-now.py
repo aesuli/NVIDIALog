@@ -1,3 +1,4 @@
+import os
 import nvsmi
 import pandas as pd
 
@@ -13,7 +14,11 @@ if __name__ == '__main__':
     df = pd.DataFrame(data, columns=['GPU', 'Mem (MB)', 'PID', 'User', 'Command'])
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', 100)
+    width = os.get_terminal_size().columns
+    pd.set_option('display.width', width)
+    if width > 50:
+        pd.set_option('display.max_colwidth', width-50)
+    else:
+        pd.set_option('display.max_colwidth', None)
     df.index = ['']*len(df)
     print(df)
