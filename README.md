@@ -47,23 +47,28 @@ This can be useful to group users by affiliation/work group/project.
 
 ### Arguments
 ```text
-usage: nvidialog-report.py [-h] [--num_gpus NUM_GPUS]
-                           [--input_file INPUT_FILE]
-                           [--output_file OUTPUT_FILE] [--plot_file PLOT_FILE]
-                           [--user_map USER_MAP]
+usage: nvidialog-report.py [-h] [--num_gpus NUM_GPUS] [--input_file INPUT_FILE] [--output_file OUTPUT_FILE] [--plot_file PLOT_FILE] [--plot_slices PLOT_SLICES] [--user_map USER_MAP] [--sort_by_use] [--last-year | --last-month | --last-week | --last-day | --last-hour | --interval START END]
 
 options:
   -h, --help            show this help message and exit
-  --num_gpus NUM_GPUS   Number of GPUs. Optional, by default it is inferred
-                        from log.
+  --num_gpus NUM_GPUS   Number of GPUs (default: it is inferred from log)
   --input_file INPUT_FILE
-                        Input file, default is standard input
+                        Input file, (default: standard input)
   --output_file OUTPUT_FILE
-                        Output file, default is standard output
+                        Output file (default: standard output)
   --plot_file PLOT_FILE
-                        Plot user/GPU map to file. Default is no plot.
-  --user_map USER_MAP   Mapping of user names to alternative names. One per
-                        line, format: "user,newname". Default is no mapping.
+                        Plot user/GPU map to file (default: no plot). The filename extension determines the output format (e.g.: .pdf/.png/.svg)
+  --plot_slices PLOT_SLICES
+                        Number of time slices in the plot (default: 250)
+  --user_map USER_MAP   Mapping of user names to alternative names. One per line, format: "user,newname" (default: no mapping)
+  --sort-by-use         Sort table by descending use in the report (default: sort by name)
+  --last-year           Process logs from the last year. This and the following options are mutually exclusive (default: process the whole input data)
+  --last-month          Process logs from the last month
+  --last-week           Process logs from the last week
+  --last-day            Process logs from the last day
+  --last-hour           Process logs from the last hour
+  --interval START END  Process logs within the given start and end date (using ISO 8601 format: 2024-12-26T12:30:00)
+
 ```
 
 ## Realtime query
